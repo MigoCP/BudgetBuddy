@@ -9,31 +9,28 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-@Model
-class Expense {
-    
-    // Expense Properties
+struct Expense: Identifiable, Codable {
+    var id: String = UUID().uuidString // Unique Firestore ID
     var title: String
     var subTitle: String
     var amount: Double
     var date: Date
-    // Expense Category
-    var category: Category?
-    
-    init(title: String, subTitle: String, amount: Double, date: Date, category: Category? = nil) {
-        self.title = title
-        self.subTitle = subTitle
-        self.amount = amount
-        self.date = date
-        self.category = category
+    var category: String // Store category as a string for Firestore compatibility
+
+    // Convert Date to Timestamp for Firestore
+    var timestamp: TimeInterval {
+        return date.timeIntervalSince1970
     }
-    
-    // Currency String
-    @Transient
-    var currencyString: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        
-        return formatter.string(for: amount) ?? ""
+
+    // Convert to dictionary for Firestore
+    func toDictionary() -> [String: Any] {
+        return [
+            "id": id,
+            "title": title,
+            "subTitle": subTitle,
+            "amount": amount,
+            "date": timestamp,
+            "category": category
+        ]
     }
 }
