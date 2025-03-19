@@ -6,8 +6,7 @@
 //
 
 import SwiftUI
-
-import SwiftUI
+import FirebaseFirestore
 
 struct AddExpenseView: View {
     @Environment(\.dismiss) private var dismiss
@@ -17,8 +16,10 @@ struct AddExpenseView: View {
     @State private var amount: Double = 0
     @State private var category: Category?
     @State private var allCategories: [Category] = []
-    
-    var onAddExpense: (Expense) -> Void // Closure to handle the new expense
+
+    let db = Firestore.firestore()
+
+    var onAddExpense: (Expense) -> Void
 
     var body: some View {
         NavigationStack {
@@ -26,22 +27,22 @@ struct AddExpenseView: View {
                 Section("Title") {
                     TextField("Magic Keyboard", text: $title)
                 }
-                
+
                 Section("Description") {
                     TextField("Bought a keyboard at the Apple Store", text: $subTitle)
                 }
-                
+
                 Section("Amount Spent") {
                     TextField("0.0", value: $amount, formatter: formatter)
                         .keyboardType(.decimalPad)
                 }
-                
+
                 Section("Date") {
                     DatePicker("", selection: $date, displayedComponents: [.date])
                         .datePickerStyle(.graphical)
                         .labelsHidden()
                 }
-                
+
                 if !allCategories.isEmpty {
                     Picker("Category", selection: $category) {
                         Text("None").tag(nil as Category?)
@@ -50,6 +51,9 @@ struct AddExpenseView: View {
                         }
                     }
                 }
+            }
+            .onAppear {
+                fetchCategories()
             }
             .navigationTitle("Add Expense")
             .navigationBarTitleDisplayMode(.inline)
@@ -65,11 +69,24 @@ struct AddExpenseView: View {
             }
         }
     }
-    
-    var isAddButtonDisabled: Bool {
-        title.isEmpty || subTitle.isEmpty || amount == .zero
+
+    func fetchCategories() {
+        db.collection("categories").getDocuments { snapshot, error in
+            if let error = error {
+                print("Error fetching categories: \(error)")
+                return
+            }
+            if let documents = snapshot?.documents {
+                self.allCategories = documents.map { doc in
+                    let data = doc.data()
+                    return Category(
+                        categoryName: data["categoryName"] as? String ?? "Unknown"
+                    )
+                }
+            }
+        }
     }
-    
+
     func addExpense() {
         let newExpense = Expense(
             title: title,
@@ -80,10 +97,14 @@ struct AddExpenseView: View {
             paymentMethod: "Cash",
             isRecurring: false
         )
-        onAddExpense(newExpense) // Pass the expense back to ExpensesView
+        onAddExpense(newExpense)
         dismiss()
     }
-    
+
+    var isAddButtonDisabled: Bool {
+        title.isEmpty || subTitle.isEmpty || amount == .zero
+    }
+
     var formatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
