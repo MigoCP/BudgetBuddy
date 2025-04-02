@@ -10,6 +10,8 @@ import FirebaseFirestore
 
 struct AddExpenseView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var transactionType: String? = "Expense"
+    let transactionTypes = ["Expense", "Income"]
     @State private var title: String = ""
     @State private var subTitle: String = ""
     @State private var date: Date = .init()
@@ -50,6 +52,14 @@ struct AddExpenseView: View {
                             Text(category.categoryName).tag(category as Category?)
                         }
                     }
+                }
+                Section("Transaction Type") {
+                    Picker("Type", selection: $transactionType) {
+                        ForEach(transactionTypes, id: \.self) { type in
+                            Text(type).tag(type as String?)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                 }
             }
             .onAppear {
@@ -95,7 +105,8 @@ struct AddExpenseView: View {
             date: date,
             category: category,
             paymentMethod: "Cash",
-            isRecurring: false
+            isRecurring: false,
+            transactionType: transactionType ?? "Expense"
         )
         onAddExpense(newExpense)
         dismiss()
