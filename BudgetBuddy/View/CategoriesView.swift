@@ -131,17 +131,22 @@ struct CategoriesView: View {
             }
 
             if let documents = snapshot?.documents {
-                self.allCategories = documents.map { doc in
+                self.allCategories = documents.compactMap { doc in
                     let data = doc.data()
+                    guard let idString = data["id"] as? String,
+                        let uuid = UUID(uuidString: idString) else { return nil }
+
                     return Category(
+                        id: uuid,
                         categoryName: data["categoryName"] as? String ?? "Unknown"
                     )
                 }
 
-                fetchExpenses() // <- Now safe to call
+                fetchExpenses()
             }
         }
     }
+
 
 
     func fetchExpenses() {
@@ -153,21 +158,31 @@ struct CategoriesView: View {
 
             guard let documents = snapshot?.documents else { return }
 
-            self.allExpenses = documents.map { doc in
+            self.allExpenses = documents.compactMap { doc in
                 let data = doc.data()
-                let categoryName = data["categoryName"] as? String ?? "Uncategorized"
+                guard
+                    let title = data["title"] as? String,
+                    let subTitle = data["subTitle"] as? String,
+                    let amount = data["amount"] as? Double,
+                    let paymentMethod = data["paymentMethod"] as? String,
+                    let isRecurring = data["isRecurring"] as? Bool,
+                    let timestamp = data["date"] as? Timestamp,
+                    let categoryIDString = data["categoryID"] as? String,
+                    let categoryUUID = UUID(uuidString: categoryIDString)
+                else {
+                    return nil
+                }
 
-                // Match the category from allCategories
-                let matchedCategory = allCategories.first(where: { $0.categoryName == categoryName })
+                let matchedCategory = allCategories.first(where: { $0.id == categoryUUID })
 
                 return Expense(
-                    title: data["title"] as? String ?? "",
-                    subTitle: data["subTitle"] as? String ?? "",
-                    amount: data["amount"] as? Double ?? 0.0,
-                    date: (data["date"] as? Timestamp)?.dateValue() ?? Date(),
-                    category: matchedCategory, // Use matched category object
-                    paymentMethod: data["paymentMethod"] as? String ?? "Unknown",
-                    isRecurring: data["isRecurring"] as? Bool ?? false
+                    title: title,
+                    subTitle: subTitle,
+                    amount: amount,
+                    date: timestamp.dateValue(),
+                    category: matchedCategory,
+                    paymentMethod: paymentMethod,
+                    isRecurring: isRecurring
                 )
             }
 
@@ -176,14 +191,16 @@ struct CategoriesView: View {
     }
 
 
+
     func assignExpensesToCategories() {
         for index in allCategories.indices {
-            let catName = allCategories[index].categoryName
+            let catID = allCategories[index].id
             allCategories[index].transactions = allExpenses.filter {
-                $0.category?.categoryName == catName
+                $0.category?.id == catID
             }
         }
     }
+
 
 }
 

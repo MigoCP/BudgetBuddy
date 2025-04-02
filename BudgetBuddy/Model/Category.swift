@@ -9,19 +9,15 @@
 import SwiftUI
 
 struct Category: Identifiable, Hashable {
-    let id = UUID()
+    var id: UUID 
     var categoryName: String
-    var transactions: [Expense] = [] // Use a concrete type
+    var transactions: [Expense] = []
 
     static func == (lhs: Category, rhs: Category) -> Bool {
-        return lhs.id == rhs.id && lhs.categoryName == rhs.categoryName
+        return lhs.id == rhs.id
     }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(categoryName)
     }
 }
-
-
-

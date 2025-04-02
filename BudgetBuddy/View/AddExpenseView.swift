@@ -107,7 +107,8 @@ struct AddExpenseView: View {
             "paymentMethod": newExpense.paymentMethod,
             "isRecurring": newExpense.isRecurring,
             "type": newExpense.type.rawValue,
-            "categoryName": newExpense.category?.categoryName ?? "Uncategorized"
+            "categoryName": newExpense.category?.categoryName ?? "Uncategorized",
+            "categoryID": newExpense.category?.id.uuidString ?? ""
         ]
 
         db.collection("expenses").document(newExpense.id.uuidString).setData(expenseData) { error in

@@ -11,7 +11,7 @@ struct Expense: Identifiable, Transaction, Equatable {
     let id = UUID()
     var title: String
     var subTitle: String
-    var amount: Double
+    var amount: Doublea
     var date: Date
     var category: Category?
     var type: TransactionType = .expense
