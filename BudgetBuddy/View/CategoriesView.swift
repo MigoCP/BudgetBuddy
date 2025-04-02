@@ -13,7 +13,9 @@ struct CategoriesView: View {
     @State private var addCategory: Bool = false
     @State private var categoryName: String = ""
     @State private var deleteRequest: Bool = false
-        @State private var requestedCategory: Category?
+    @State private var requestedCategory: Category?
+    @State private var allExpenses: [Expense] = []
+
 
     let db = Firestore.firestore()
     
@@ -109,6 +111,7 @@ struct CategoriesView: View {
             }
             .onAppear {
                 fetchCategories()
+                fetchExpenses()
             }
         }
     }
@@ -127,6 +130,7 @@ struct CategoriesView: View {
                 print("Error fetching categories: \(error)")
                 return
             }
+
             if let documents = snapshot?.documents {
                 self.allCategories = documents.map { doc in
                     let data = doc.data()
@@ -134,9 +138,49 @@ struct CategoriesView: View {
                         categoryName: data["categoryName"] as? String ?? "Unknown"
                     )
                 }
+
+                assignExpensesToCategories()
             }
         }
     }
+
+
+    func fetchExpenses() {
+        db.collection("expenses").getDocuments { snapshot, error in
+            if let error = error {
+                print("Error fetching expenses: \(error)")
+                return
+            }
+
+            guard let documents = snapshot?.documents else { return }
+
+            self.allExpenses = documents.map { doc in
+                let data = doc.data()
+
+                return Expense(
+                    title: data["title"] as? String ?? "",
+                    subTitle: data["subTitle"] as? String ?? "",
+                    amount: data["amount"] as? Double ?? 0.0,
+                    date: (data["date"] as? Timestamp)?.dateValue() ?? Date(),
+                    category: Category(categoryName: data["categoryName"] as? String ?? "Uncategorized"),
+                    paymentMethod: data["paymentMethod"] as? String ?? "Unknown",
+                    isRecurring: data["isRecurring"] as? Bool ?? false
+                )
+            }
+
+            assignExpensesToCategories()
+        }
+    }
+
+    func assignExpensesToCategories() {
+        for index in allCategories.indices {
+            let catName = allCategories[index].categoryName
+            allCategories[index].transactions = allExpenses.filter {
+                $0.category?.categoryName == catName
+            }
+        }
+    }
+
 }
 
 #Preview {
