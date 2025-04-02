@@ -32,7 +32,7 @@ struct AddExpenseView: View {
                     TextField("Bought a keyboard at the Apple Store", text: $subTitle)
                 }
 
-                Section("Amount Spent") {
+                Section("Amount") {
                     TextField("0.0", value: $amount, formatter: formatter)
                         .keyboardType(.decimalPad)
                 }
@@ -55,7 +55,7 @@ struct AddExpenseView: View {
             .onAppear {
                 fetchCategories()
             }
-            .navigationTitle("Add Expense")
+            .navigationTitle("Add Transaction")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
