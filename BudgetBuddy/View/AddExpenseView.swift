@@ -105,7 +105,8 @@ struct AddExpenseView: View {
             date: date,
             category: category,
             paymentMethod: "Cash",
-            isRecurring: false
+            isRecurring: false,
+            transactionType: transactionType ?? "Expense"
         )
 
         let expenseData: [String: Any] = [
@@ -117,6 +118,7 @@ struct AddExpenseView: View {
             "paymentMethod": newExpense.paymentMethod,
             "isRecurring": newExpense.isRecurring,
             "type": newExpense.type.rawValue,
+            "transactionType": newExpense.transactionType,
             "categoryName": newExpense.category?.categoryName ?? "Uncategorized"
         ]
 
