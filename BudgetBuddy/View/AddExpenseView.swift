@@ -80,8 +80,10 @@ struct AddExpenseView: View {
                 self.allCategories = documents.map { doc in
                     let data = doc.data()
                     return Category(
-                        categoryName: data["categoryName"] as? String ?? "Unknown"
-                    )
+    id: UUID(uuidString: data["id"] as? String ?? "") ?? UUID(),
+    categoryName: data["categoryName"] as? String ?? "Unknown"
+)
+
                 }
             }
         }
