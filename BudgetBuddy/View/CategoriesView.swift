@@ -32,7 +32,7 @@ struct CategoriesView: View {
                                             }
                                         } else {
                                             ContentUnavailableView {
-                                                Label("No Expenses", systemImage: "tray.fill")
+                                                Label("No Transactions", systemImage: "tray.fill")
                                             }
                                         }
                                     } label: {
@@ -57,7 +57,7 @@ struct CategoriesView: View {
                                 }
                             }
                         }
-                        .alert("If you delete a category, all associated expenses will be deleted too.", isPresented: $deleteRequest) {
+                        .alert("If you delete a category, all associated transactions will be deleted too.", isPresented: $deleteRequest) {
                                     Button(role: .destructive) {
                                         if let requestedCategory {
                                             allCategories.removeAll { $0.id == requestedCategory.id }

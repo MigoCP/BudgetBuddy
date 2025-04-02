@@ -34,6 +34,7 @@ struct TransactionCardView: View {
             
             Text(expense.currencyString)
                 .font(.title3.bold())
+                .foregroundColor(expense.transactionType == "Income" ? .green : .red)
         }
     }
 }

@@ -17,6 +17,7 @@ struct Expense: Identifiable, Transaction, Equatable {
     var type: TransactionType = .expense
     var paymentMethod: String
     var isRecurring: Bool
+    var transactionType: String
 
     func isEssential() -> Bool {
         return false

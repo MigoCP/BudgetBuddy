@@ -25,12 +25,12 @@ struct ExpensesView: View {
                     ExpenseSection(group: group, deleteExpense: deleteExpense)
                 }
             }
-            .navigationTitle("Expenses")
+            .navigationTitle("Transactions")
             .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: Text("Search"))
             .overlay {
                 if allExpenses.isEmpty || groupedExpenses.isEmpty {
                     ContentUnavailableView {
-                        Label("No Expenses", systemImage: "tray.fill")
+                        Label("No transactioins", systemImage: "tray.fill")
                     }
                 }
             }
@@ -114,5 +114,5 @@ struct ExpenseSection: View {
 }
 
 #Preview {
-    ExpensesView(currentTab: .constant("Expenses"))
+    ExpensesView(currentTab: .constant("Transactions"))
 }
