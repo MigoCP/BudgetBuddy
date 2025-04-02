@@ -105,12 +105,32 @@ struct AddExpenseView: View {
             date: date,
             category: category,
             paymentMethod: "Cash",
-            isRecurring: false,
-            transactionType: transactionType ?? "Expense"
+            isRecurring: false
         )
-        onAddExpense(newExpense)
-        dismiss()
+
+        let expenseData: [String: Any] = [
+            "id": newExpense.id.uuidString,
+            "title": newExpense.title,
+            "subTitle": newExpense.subTitle,
+            "amount": newExpense.amount,
+            "date": Timestamp(date: newExpense.date),
+            "paymentMethod": newExpense.paymentMethod,
+            "isRecurring": newExpense.isRecurring,
+            "type": newExpense.type.rawValue,
+            "categoryName": newExpense.category?.categoryName ?? "Uncategorized"
+        ]
+
+        db.collection("expenses").document(newExpense.id.uuidString).setData(expenseData) { error in
+            if let error = error {
+                print("Error saving expense: \(error)")
+                return
+            }
+
+            onAddExpense(newExpense)
+            dismiss()
+        }
     }
+
 
     var isAddButtonDisabled: Bool {
         title.isEmpty || subTitle.isEmpty || amount == .zero
