@@ -96,7 +96,7 @@ struct CategoriesView: View {
                         }
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Add") {
-                                let category = Category(categoryName: categoryName)
+                                let category = Category(id: UUID(), categoryName: categoryName)
                                 saveCategoryToFirestore(category)
                                 categoryName = ""
                                 addCategory = false
