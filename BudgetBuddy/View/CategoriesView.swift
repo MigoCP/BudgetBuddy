@@ -111,7 +111,6 @@ struct CategoriesView: View {
             }
             .onAppear {
                 fetchCategories()
-                fetchExpenses()
             }
         }
     }
@@ -139,7 +138,7 @@ struct CategoriesView: View {
                     )
                 }
 
-                assignExpensesToCategories()
+                fetchExpenses() // <- Now safe to call
             }
         }
     }
@@ -156,13 +155,17 @@ struct CategoriesView: View {
 
             self.allExpenses = documents.map { doc in
                 let data = doc.data()
+                let categoryName = data["categoryName"] as? String ?? "Uncategorized"
+
+                // Match the category from allCategories
+                let matchedCategory = allCategories.first(where: { $0.categoryName == categoryName })
 
                 return Expense(
                     title: data["title"] as? String ?? "",
                     subTitle: data["subTitle"] as? String ?? "",
                     amount: data["amount"] as? Double ?? 0.0,
                     date: (data["date"] as? Timestamp)?.dateValue() ?? Date(),
-                    category: Category(categoryName: data["categoryName"] as? String ?? "Uncategorized"),
+                    category: matchedCategory, // Use matched category object
                     paymentMethod: data["paymentMethod"] as? String ?? "Unknown",
                     isRecurring: data["isRecurring"] as? Bool ?? false
                 )
@@ -171,6 +174,7 @@ struct CategoriesView: View {
             assignExpensesToCategories()
         }
     }
+
 
     func assignExpensesToCategories() {
         for index in allCategories.indices {
