@@ -59,8 +59,15 @@ struct CategoriesView: View {
                         }
                         .alert("If you delete a category, all associated transactions will be deleted too.", isPresented: $deleteRequest) {
                                     Button(role: .destructive) {
-                                        if let requestedCategory {
-                                            allCategories.removeAll { $0.id == requestedCategory.id }
+                                        if let categoryToDelete = requestedCategory {
+                                            db.collection("categories").document(categoryToDelete.id.uuidString).delete { error in
+                                                if let error = error {
+                                                    print("Error deleting category: \(error.localizedDescription)")
+                                                } else {
+                                                    allCategories.removeAll { $0.id == categoryToDelete.id }
+                                                    print("Category successfully deleted")
+                                                }
+                                            }
                                             self.requestedCategory = nil
                                         }
                                     } label: {
@@ -131,6 +138,7 @@ struct CategoriesView: View {
                 self.allCategories = documents.map { doc in
                     let data = doc.data()
                     return Category(
+                        id: UUID(uuidString: data["id"] as? String ?? "") ?? UUID(),
                         categoryName: data["categoryName"] as? String ?? "Unknown"
                     )
                 }
