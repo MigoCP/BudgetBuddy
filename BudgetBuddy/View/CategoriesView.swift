@@ -103,6 +103,8 @@ struct CategoriesView: View {
                             Button("Add") {
                                 let category = Category(categoryName: categoryName)
                                 saveCategoryToFirestore(category)
+                                allCategories.append(category)
+                                allCategories.sort { $0.transactions.count > $1.transactions.count}
                                 categoryName = ""
                                 addCategory = false
                             }
