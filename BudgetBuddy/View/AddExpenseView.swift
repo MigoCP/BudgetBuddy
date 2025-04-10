@@ -90,6 +90,7 @@ struct AddExpenseView: View {
                 self.allCategories = documents.map { doc in
                     let data = doc.data()
                     return Category(
+                        id: UUID(uuidString: data["id"] as? String ?? "") ?? UUID(),
                         categoryName: data["categoryName"] as? String ?? "Unknown"
                     )
                 }
@@ -119,7 +120,8 @@ struct AddExpenseView: View {
             "isRecurring": newExpense.isRecurring,
             "type": newExpense.type.rawValue,
             "transactionType": newExpense.transactionType,
-            "categoryName": newExpense.category?.categoryName ?? "Uncategorized"
+            "categoryName": newExpense.category?.categoryName ?? "Uncategorized",
+            "categoryId": newExpense.category?.id.uuidString ?? ""
         ]
 
         db.collection("expenses").document(newExpense.id.uuidString).setData(expenseData) { error in
