@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct Expense: Identifiable, Transaction, Equatable {
-    let id = UUID()
+    var id: UUID
     var title: String
     var subTitle: String
     var amount: Double
@@ -19,11 +19,29 @@ struct Expense: Identifiable, Transaction, Equatable {
     var isRecurring: Bool
     var transactionType: String
 
-    func isEssential() -> Bool {
-        return false
+    init(
+        id: UUID = UUID(),
+        title: String,
+        subTitle: String,
+        amount: Double,
+        date: Date,
+        category: Category?,
+        paymentMethod: String,
+        isRecurring: Bool,
+        transactionType: String
+    ) {
+        self.id = id
+        self.title = title
+        self.subTitle = subTitle
+        self.amount = amount
+        self.date = date
+        self.category = category
+        self.paymentMethod = paymentMethod
+        self.isRecurring = isRecurring
+        self.transactionType = transactionType
+        self.type = transactionType == "Income" ? .income : .expense
     }
 
-    // Add Equatable conformance
     static func == (lhs: Expense, rhs: Expense) -> Bool {
         return lhs.id == rhs.id &&
                lhs.title == rhs.title &&
@@ -36,5 +54,6 @@ struct Expense: Identifiable, Transaction, Equatable {
                lhs.isRecurring == rhs.isRecurring
     }
 }
+
 
 

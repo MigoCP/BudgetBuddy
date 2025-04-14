@@ -14,13 +14,13 @@ struct CategoriesView: View {
     @State private var categoryName: String = ""
     @State private var deleteRequest: Bool = false
     @State private var requestedCategory: Category?
-    
+
     let db = Firestore.firestore()
-    
+
     var sortedCategories: [Category] {
         allCategories.sorted { $0.transactions.count > $1.transactions.count }
     }
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -60,20 +60,48 @@ struct CategoriesView: View {
             .alert("If you delete a category, all associated transactions will be deleted too.", isPresented: $deleteRequest) {
                 Button(role: .destructive) {
                     if let categoryToDelete = requestedCategory {
-                        db.collection("categories").document(categoryToDelete.id.uuidString).delete { error in
-                            if let error = error {
-                                print("Error deleting category: \(error.localizedDescription)")
-                            } else {
-                                allCategories.removeAll { $0.id == categoryToDelete.id }
-                                print("Category successfully deleted")
+                        let categoryId = categoryToDelete.id.uuidString
+
+                        // Step 1: Query all expenses with this category ID
+                        db.collection("expenses")
+                            .whereField("categoryId", isEqualTo: categoryId)
+                            .getDocuments { snapshot, error in
+                                if let error = error {
+                                    print("Error fetching related expenses: \(error.localizedDescription)")
+                                    return
+                                }
+
+                                let batch = db.batch()
+
+                                // Step 2: Delete related expenses
+                                snapshot?.documents.forEach { doc in
+                                    batch.deleteDocument(doc.reference)
+                                }
+
+                                // Step 3: Delete the category
+                                let categoryRef = db.collection("categories").document(categoryId)
+                                batch.deleteDocument(categoryRef)
+
+                                // Step 4: Commit the batch
+                                batch.commit { error in
+                                    if let error = error {
+                                        print("Batch delete failed: \(error.localizedDescription)")
+                                    } else {
+                                        print("Category and associated expenses deleted")
+                                        fetchCategories()
+                                    }
+                                }
                             }
-                        }
+
                         self.requestedCategory = nil
                     }
                 } label: {
                     Text("Delete")
                 }
-                Button(role: .cancel) { requestedCategory = nil } label: {
+
+                Button(role: .cancel) {
+                    requestedCategory = nil
+                } label: {
                     Text("Cancel")
                 }
             }
@@ -103,8 +131,7 @@ struct CategoriesView: View {
                             Button("Add") {
                                 let category = Category(categoryName: categoryName)
                                 saveCategoryToFirestore(category)
-                                allCategories.append(category)
-                                allCategories.sort { $0.transactions.count > $1.transactions.count}
+                                fetchCategories()
                                 categoryName = ""
                                 addCategory = false
                             }
@@ -118,10 +145,18 @@ struct CategoriesView: View {
             }
             .onAppear {
                 fetchCategories()
+
+                // 👂 Listen for expense updates
+                NotificationCenter.default.addObserver(forName: Notification.Name("ExpenseDataChanged"), object: nil, queue: .main) { _ in
+                    fetchCategories()
+                }
+            }
+            .onDisappear {
+                NotificationCenter.default.removeObserver(self, name: Notification.Name("ExpenseDataChanged"), object: nil)
             }
         }
     }
-    
+
     func saveCategoryToFirestore(_ category: Category) {
         let categoryData: [String: Any] = [
             "id": category.id.uuidString,
@@ -129,18 +164,14 @@ struct CategoriesView: View {
         ]
         db.collection("categories").document(category.id.uuidString).setData(categoryData)
     }
-    
+
     func fetchCategories() {
         db.collection("categories").getDocuments { snapshot, error in
             if let error = error {
                 print("Error fetching categories: \(error)")
                 return
             }
-            
-            
-            
-            
-            
+
             guard let documents = snapshot?.documents else { return }
 
             var fetchedCategories: [Category] = documents.map { doc in
@@ -151,26 +182,29 @@ struct CategoriesView: View {
                 )
             }
 
-            // Fetch expenses
             db.collection("expenses").getDocuments { expenseSnapshot, error in
                 if let error = error {
                     print("Error fetching expenses: \(error)")
                     return
                 }
-                
+
                 guard let expenseDocs = expenseSnapshot?.documents else { return }
-                
+
                 let expenses: [Expense] = expenseDocs.compactMap { doc in
                     let data = doc.data()
                     guard
                         let title = data["title"] as? String,
                         let amount = data["amount"] as? Double,
-                        let categoryId = data["categoryId"] as? String
+                        let categoryId = data["categoryId"] as? String,
+                        let idStr = data["id"] as? String
                     else { return nil }
-                    
-                    let category = fetchedCategories.first { $0.id.uuidString == categoryId }
-                    
+
+                    guard let category = fetchedCategories.first(where: { $0.id.uuidString == categoryId }) else {
+                        return nil
+                    }
+
                     return Expense(
+                        id: UUID(uuidString: idStr) ?? UUID(),
                         title: title,
                         subTitle: data["subTitle"] as? String ?? "",
                         amount: amount,
@@ -181,14 +215,14 @@ struct CategoriesView: View {
                         transactionType: data["transactionType"] as? String ?? "expense"
                     )
                 }
-                
+
                 for expense in expenses {
-                    if let category = expense.category,
-                       let index = fetchedCategories.firstIndex(where: { $0.id == category.id }) {
+                    if let cat = expense.category,
+                       let index = fetchedCategories.firstIndex(where: { $0.id == cat.id }) {
                         fetchedCategories[index].transactions.append(expense)
                     }
                 }
-                
+
                 self.allCategories = fetchedCategories
             }
         }

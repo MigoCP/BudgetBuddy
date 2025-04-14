@@ -27,6 +27,3 @@ struct Category: Identifiable, Hashable {
         hasher.combine(categoryName)
     }
 }
-
-
-

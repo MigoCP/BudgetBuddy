@@ -131,7 +131,9 @@ struct AddExpenseView: View {
             }
 
             onAddExpense(newExpense)
+            NotificationCenter.default.post(name: Notification.Name("ExpenseDataChanged"), object: nil)
             dismiss()
+
         }
     }
 

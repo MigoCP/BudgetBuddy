@@ -12,20 +12,28 @@ struct ContentView: View {
     
     var body: some View {
         TabView(selection: $currentTab) {
-            ExpensesView(currentTab: $currentTab) // Pass binding here
+            ExpensesView(currentTab: $currentTab)
                 .tag("Expenses")
                 .tabItem {
                     Image(systemName: "creditcard.fill")
-                    Text("Expenses")
+                    Text("Transactions")
                 }
-            
+
             CategoriesView()
                 .tag("Categories")
                 .tabItem {
                     Image(systemName: "list.clipboard.fill")
                     Text("Categories")
                 }
+
+            InsightsView()
+                .tag("Insights")
+                .tabItem {
+                    Image(systemName: "chart.pie.fill")
+                    Text("Insights")
+                }
         }
+
     }
 }
 
