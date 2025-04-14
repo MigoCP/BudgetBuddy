@@ -14,6 +14,7 @@ struct CategoriesView: View {
     @State private var categoryName: String = ""
     @State private var deleteRequest: Bool = false
     @State private var requestedCategory: Category?
+    @State private var showDuplicateAlert: Bool = false
 
     let db = Firestore.firestore()
 
@@ -129,11 +130,16 @@ struct CategoriesView: View {
                         }
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Add") {
-                                let category = Category(categoryName: categoryName)
-                                saveCategoryToFirestore(category)
-                                fetchCategories()
-                                categoryName = ""
-                                addCategory = false
+                                let trimmedName = categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+                                if allCategories.contains(where: { $0.categoryName.lowercased() == trimmedName.lowercased() }) {
+                                    showDuplicateAlert = true
+                                } else {
+                                    let category = Category(categoryName: trimmedName)
+                                    saveCategoryToFirestore(category)
+                                    fetchCategories()
+                                    categoryName = ""
+                                    addCategory = false
+                                }
                             }
                             .disabled(categoryName.isEmpty)
                         }
@@ -142,6 +148,11 @@ struct CategoriesView: View {
                 .presentationDetents([.height(180)])
                 .presentationCornerRadius(20)
                 .interactiveDismissDisabled()
+            }
+            .alert("Duplicate Category", isPresented: $showDuplicateAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("A category with this name already exists.")
             }
             .onAppear {
                 fetchCategories()
