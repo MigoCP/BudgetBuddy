@@ -231,15 +231,17 @@ struct ExpenseSection: View {
     var body: some View {
         Section(header: Text(group.getGroupTitle())) {
             ForEach(group.transactions, id: \.id) { expense in
-                TransactionCardView(expense: expense)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button {
-                            deleteExpense(expense, group)
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                        .tint(.red)
+                NavigationLink(destination: TransactionCardView(expense: expense)) {
+                    TransactionCardView(expense: expense)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button {
+                        deleteExpense(expense, group)
+                    } label: {
+                        Image(systemName: "trash")
                     }
+                    .tint(.red)
+                }
             }
         }
     }

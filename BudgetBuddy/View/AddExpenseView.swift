@@ -18,6 +18,7 @@ struct AddExpenseView: View {
     @State private var amount: Double = 0
     @State private var category: Category?
     @State private var allCategories: [Category] = []
+    @State private var paymentMethod: String = "Cash"
 
     let db = Firestore.firestore()
 
@@ -54,12 +55,21 @@ struct AddExpenseView: View {
                     }
                 }
                 Section("Transaction Type") {
-                    Picker("Type", selection: $transactionType) {
+                    Picker("Transaction Type", selection: $transactionType) {
                         ForEach(transactionTypes, id: \.self) { type in
                             Text(type).tag(type as String?)
                         }
                     }
                     .pickerStyle(.segmented)
+                }
+
+                Section("Payment Method") {
+                    Picker("Payment Method", selection: $paymentMethod) {
+                        Text("Cash").tag("Cash")
+                        Text("Credit").tag("Credit")
+                        Text("Debit").tag("Debit")
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
                 }
             }
             .onAppear {
@@ -105,7 +115,7 @@ struct AddExpenseView: View {
             amount: amount,
             date: date,
             category: category,
-            paymentMethod: "Cash",
+            paymentMethod: paymentMethod,
             isRecurring: false,
             transactionType: transactionType ?? "Expense"
         )

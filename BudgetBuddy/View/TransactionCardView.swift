@@ -27,6 +27,9 @@ struct TransactionCardView: View {
                         .padding(.vertical, 4)
                         .background(Color.red.gradient, in: .capsule)
                 }
+                Text("Paid with: \(expense.paymentMethod)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
             }
             .lineLimit(1)
             
