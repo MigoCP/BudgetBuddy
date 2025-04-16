@@ -231,7 +231,7 @@ struct ExpenseSection: View {
     var body: some View {
         Section(header: Text(group.getGroupTitle())) {
             ForEach(group.transactions, id: \.id) { expense in
-                NavigationLink(destination: TransactionCardView(expense: expense)) {
+                NavigationLink(destination: TransactionDetailView(expense: expense)) {
                     TransactionCardView(expense: expense)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
