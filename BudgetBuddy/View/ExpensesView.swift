@@ -48,6 +48,15 @@ struct ExpensesView: View {
             if allExpenses.isEmpty {
                 fetchExpenses()
             }
+
+            let db = Firestore.firestore()
+            db.collection("expenses").addSnapshotListener { snapshot, error in
+                if let error = error {
+                    print("Error listening for expense updates: \(error.localizedDescription)")
+                    return
+                }
+                fetchExpenses()
+            }
         }
         .onChange(of: searchText) { newValue in
             if newValue.isEmpty {

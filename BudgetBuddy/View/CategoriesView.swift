@@ -63,7 +63,7 @@ struct CategoriesView: View {
                     if let categoryToDelete = requestedCategory {
                         let categoryId = categoryToDelete.id.uuidString
 
-                        // Step 1: Query all expenses with this category ID
+                        // Find all expenses using this category
                         db.collection("expenses")
                             .whereField("categoryId", isEqualTo: categoryId)
                             .getDocuments { snapshot, error in
@@ -74,21 +74,21 @@ struct CategoriesView: View {
 
                                 let batch = db.batch()
 
-                                // Step 2: Delete related expenses
+                                // Delete each expense in the query
                                 snapshot?.documents.forEach { doc in
                                     batch.deleteDocument(doc.reference)
                                 }
 
-                                // Step 3: Delete the category
+                                // Also delete the category
                                 let categoryRef = db.collection("categories").document(categoryId)
                                 batch.deleteDocument(categoryRef)
 
-                                // Step 4: Commit the batch
+                                // Commit the batch
                                 batch.commit { error in
                                     if let error = error {
                                         print("Batch delete failed: \(error.localizedDescription)")
                                     } else {
-                                        print("Category and associated expenses deleted")
+                                        print("✅ Category and associated expenses deleted.")
                                         fetchCategories()
                                     }
                                 }
@@ -157,7 +157,7 @@ struct CategoriesView: View {
             .onAppear {
                 fetchCategories()
 
-                // 👂 Listen for expense updates
+                // Listen for expense updates
                 NotificationCenter.default.addObserver(forName: Notification.Name("ExpenseDataChanged"), object: nil, queue: .main) { _ in
                     fetchCategories()
                 }
